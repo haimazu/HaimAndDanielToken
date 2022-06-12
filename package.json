@@ -1,0 +1,19 @@
+{
+  "name": "ort",
+  "version": "1.0.0",
+  "description": "my first crypto token",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "AK",
+  "license": "ISC",
+  "devDependencies": {
+    "@openzeppelin/cli": "^2.8.2",
+    "@openzeppelin/contracts": "^3.3.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contract-loader": "^0.6.2",
+    "web3": "^1.3.1"
+  }
+}

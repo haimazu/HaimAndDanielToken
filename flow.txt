@@ -1,0 +1,19 @@
+/////////// node create project
+npm init
+
+/////////// install openzeppelin packages
+npm i --save-dev @openzeppelin/cli
+npm i --save-dev @openzeppelin/contracts
+
+/////////// start openzeppelin cli
+npx openzeppelin init
+
+/////////// compile smart contract
+npx oz compile --solc-version 0.6.2
+
+/////////// deploy solution in private blockchain
+npx oz deploy 
+
+/////////// install web3 and oz contract loader
+npm i web3
+npm i @openzeppelin/contract-loader
