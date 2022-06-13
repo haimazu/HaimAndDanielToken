@@ -33,16 +33,18 @@
         </h5>
         ---------------------------------------------------------------------------------------
         <script type="text/javascript">
-          var counter = 4;
-          
-          setInterval(function() {
-              counter--;
-              if(counter < 0) {
-                  window.location = 'index.html';
-              } else {
-                  document.getElementById("counter").innerHTML = counter;
-              }
-          }, 1000);
+          function countdown() {
+          var i = document.getElementById('counter');
+            if (parseInt(i.innerHTML) <= 0) {
+              location.href = 'index.html';
+            }
+            if (parseInt(i.innerHTML) != 0) {
+                i.innerHTML = parseInt(i.innerHTML) - 1;
+            }
+          }
+          setInterval(function() { 
+            countdown(); 
+          }, 4000);
         </script>
       </div>
     </div>
