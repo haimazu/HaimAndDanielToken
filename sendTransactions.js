@@ -7,7 +7,7 @@ const sendTokens = async (e) => {
     alert("Amount must be greater than 0");
     return;
   }
-  
+
   let trans = await contract.methods
     .transfer(address, amount)
     // default gas price in wei, 20 gwei in this case
@@ -15,7 +15,8 @@ const sendTokens = async (e) => {
 
   const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
 
-  localStorage.setItem(`${trans.transactionHash}-Transfer`, `${link}`);
+  var date = new Date();
+  localStorage.setItem(`${trans.transactionHash}-Transfer-${date.toLocaleString()}`, `${link}`);
 
   alert("Transaction completed successfully !");
 
