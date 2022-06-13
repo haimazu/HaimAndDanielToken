@@ -83,7 +83,7 @@
                       .getElementById("list")
                       .insertAdjacentHTML(
                         "afterbegin",
-                        `<b style='color:green'>${action[1]}:</b> <a href=${link} target="_blank">${link}<br /></a>`
+                        `(${action[2]}) <b style='color:green'>${action[1]}:</b> <a href=${link} target="_blank">${link}<br /></a>`
                       );
                     }
                     else if (action[1] === "Burn") {
@@ -91,7 +91,7 @@
                       .getElementById("list")
                       .insertAdjacentHTML(
                         "afterbegin",
-                        `<b style='color:red'>${action[1]}:</b> <a href=${link} target="_blank">${link}<br /></a>`
+                        `(${action[2]}) <b style='color:red'>${action[1]}:</b> <a href=${link} target="_blank">${link}<br /></a>`
                       );
                     }
                     else {
@@ -99,7 +99,7 @@
                       .getElementById("list")
                       .insertAdjacentHTML(
                         "afterbegin",
-                        `<b>${action[1]}:</b> <a href=${link} target="_blank">${link}<br /></a>`
+                        `(${action[2]}) <b>${action[1]}:</b> <a href=${link} target="_blank">${link}<br /></a>`
                       );
                     }
                   };
