@@ -8,6 +8,8 @@ const sendTokens = async (e) => {
     return;
   }
 
+  document.getElementById("processing").innerText = "Process in progress...";
+  
   let trans = await contract.methods
     .transfer(address, amount)
     // default gas price in wei, 20 gwei in this case
