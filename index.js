@@ -125,7 +125,7 @@ const getStat = async () => {
   };
   document.getElementById(
     "stat"
-  ).innerHTML = `<b>Amount:</b> ${stat.Amount} transaction/s<br/><b>Volume:</b> ${stat.Volume} HAD`;
+  ).innerHTML = `<b>Amount:</b> ${stat.Amount} transfer/s<br/><b>Volume:</b> ${stat.Volume} HAD`;
   //console.log(stat);
 };
 
