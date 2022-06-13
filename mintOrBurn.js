@@ -16,7 +16,8 @@ const mint = async () => {
 
   const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
  
-  localStorage.setItem(`${trans.transactionHash}-Mint`, `${link}`);
+  var date = new Date();
+  localStorage.setItem(`${trans.transactionHash}-Mint-${date.toLocaleString()}`, `${link}`);
 
   alert(`${amount} HAD token/s added successfully !`);
 
@@ -38,7 +39,8 @@ const burn = async () => {
 
   const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
 
-  localStorage.setItem(`${trans.transactionHash}-Burn`, `${link}`);
+  var date = new Date();
+  localStorage.setItem(`${trans.transactionHash}-Burn-${date.toLocaleString()}`, `${link}`);
 
   alert(`${amount} HAD token/s burned successfully !`);
 
