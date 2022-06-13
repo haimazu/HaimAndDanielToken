@@ -7,8 +7,6 @@ const sendTokens = async (e) => {
     alert("Amount must be greater than 0");
     return;
   }
-
-  document.getElementById("processing").innerText = "Process in progress...";
   
   let trans = await contract.methods
     .transfer(address, amount)
