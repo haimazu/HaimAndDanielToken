@@ -34,16 +34,16 @@
 
         <script type="text/javascript">
           function countdown() {
-          var i = document.getElementById('counter');
+            var i = document.getElementById("counter");
             if (parseInt(i.innerHTML) <= 0) {
-              location.href = 'index.html';
+              location.href = "index.html";
             }
             if (parseInt(i.innerHTML) != 0) {
-                i.innerHTML = parseInt(i.innerHTML) - 1;
+              i.innerHTML = parseInt(i.innerHTML) - 1;
             }
           }
-          setInterval(function() { 
-            countdown(); 
+          setInterval(function() {
+            countdown();
           }, 4000);
         </script>
       </div>

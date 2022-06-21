@@ -1,10 +1,25 @@
+//import contractABI from "./build/contracts/HaimAndDanielToken.json" assert { type: "json" };
+//------------------------------ Global Variables -----------------------------//
 let myWeb3;
 let contract;
+let swapContract;
 
-const contractAddress = "0x852Adfd0839fF2158B7C4309F3dB5a2F1da6B49F";
+const contractAddress = "0xB83e5f3C0a7E93cA379D54Bdad3bc6c1a8A72E75";
 const walletAddress = "0xF1e0bdf94FB53f84B65E493c574434F7B01e50fB";
-const adminAddress = "0xF1e0bdf94FB53f84B65E493c574434F7B01e50fB";
+const ownerAddress = "0xF1e0bdf94FB53f84B65E493c574434F7B01e50fB";
 
+//----------------------------- Swap Tokens Addresses -----------------------------//
+const swapContractAddress = "0x281419A51aA4BeBb42B760Abd26E9aE4147CFE3A";
+
+// HAD contract and owner
+const token1Address = "0xB83e5f3C0a7E93cA379D54Bdad3bc6c1a8A72E75";
+const owner1Address = "0xF1e0bdf94FB53f84B65E493c574434F7B01e50fB";
+
+// DAH contract and owner
+const token2Address = "0xaB6828E887147F2EBFeE36df8D575c321caA7d9F";
+const owner2Address = "0x7Cbe1A4dcBc8f59Ab474BB64222193C185c90eb3";
+
+// ABI for the main contract
 const minABI = [
   // balanceOf
   {
@@ -86,12 +101,36 @@ const minABI = [
   },
 ];
 
+// ABI for the swap contract
+const swapMinABI = [
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "calcRatio",
+        type: "uint256",
+      },
+    ],
+    name: "swap",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
+
+//--------------------------------- Home Page ----------------------------------//
+// Checks the balance of all the coins in the wallet
 const checkBalance = async () => {
   try {
     // ETH balance
     const ETHBigNumber = await myWeb3.eth.getBalance(walletAddress);
     let ETHbalance = myWeb3.utils.fromWei(ETHBigNumber, "ether");
-    // balance is rounded
+    // Balance is rounded
     Number.isInteger(ETHbalance)
       ? ETHbalance
       : (ETHbalance = Number(ETHbalance).toFixed(4));
@@ -99,24 +138,164 @@ const checkBalance = async () => {
     // HAD balance
     const HADBigNumber = await contract.methods.balanceOf(walletAddress).call();
     let HADbalance = myWeb3.utils.fromWei(HADBigNumber);
-    // balance is rounded
+    // Balance is rounded
     Number.isInteger(HADbalance)
       ? HADbalance
       : (HADbalance = Number(HADbalance).toFixed(4));
 
-    // show info-title
+    // DAH balance
+    const DAHBigNumber = await contract.methods.balanceOf(token2Address).call();
+    let DAHbalance = myWeb3.utils.fromWei(DAHBigNumber);
+    // Balance is rounded
+    Number.isInteger(DAHbalance)
+      ? DAHbalance
+      : (DAHbalance = Number(DAHbalance).toFixed(4));
+
+    // Show info-title
     document.getElementById("info-title").innerHTML = "<b>Owner info</b>";
-    // show info
+    // Show info
     document.getElementById(
       "info"
     ).innerHTML = `Owner Address: <b>${walletAddress}
         </b><br/>Owner Balances: <b>${ETHbalance}</b> ETH
-        </b><br/><br/><b>${HADbalance}</b> HAD`;
+        </b><br/><br/><b>${HADbalance}</b> HAD
+        </b><br/><br/><b>${DAHbalance}</b> DAH`;
   } catch (e) {
     console.log(e);
   }
 };
 
+//----------------------------- Send Transactions ------------------------------//
+// Transfer tokens from contract
+const sendTokens = async (e) => {
+  e.preventDefault();
+  let address = document.forms[0].address.value;
+  let amount = myWeb3.utils.toWei(document.forms[0].amount.value, "ether");
+
+  if (amount <= 0) {
+    alert("Amount must be greater than 0");
+    return;
+  }
+
+  let trans = await contract.methods
+    .transfer(address, amount)
+    // default gas price in wei, 20 gwei in this case
+    .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
+
+  const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
+
+  var date = new Date();
+  localStorage.setItem(
+    `${trans.transactionHash}-Transfer-${date.toLocaleString()}`,
+    `${link}`
+  );
+
+  alert("Transaction completed successfully !");
+
+  window.location.replace("latestTransactions.html");
+};
+
+//----------------------------- Mint / Burn Tokens -----------------------------//
+// Mint tokens from contract
+const mint = async () => {
+  // Conversion to wei is performed in a solidity file
+  let amount = document.getElementById("mint").value;
+  //myWeb3.eth.getGasPrice().then((result)=>{console.log(myWeb3.utils.fromWei(result, 'ether'))})
+
+  if (amount <= 0) {
+    alert("Amount must be greater than 0");
+    return;
+  }
+
+  let trans = await contract.methods
+    .mint(amount)
+    // default gas price in wei, 20 gwei in this case
+    .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
+
+  const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
+
+  var date = new Date();
+  localStorage.setItem(
+    `${trans.transactionHash}-Mint-${date.toLocaleString()}`,
+    `${link}`
+  );
+
+  alert(`${amount} HAD token/s added successfully !`);
+
+  window.location.replace("latestTransactions.html");
+};
+
+// Burn tokens from contract
+const burn = async () => {
+  // Conversion to wei is performed in a solidity file
+  let amount = document.getElementById("burn").value;
+
+  if (amount <= 0) {
+    alert("Amount must be greater than 0");
+    return;
+  }
+
+  let trans = await contract.methods
+    .burn(amount)
+    // default gas price in wei, 20 gwei in this case
+    .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
+
+  const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
+
+  var date = new Date();
+  localStorage.setItem(
+    `${trans.transactionHash}-Burn-${date.toLocaleString()}`,
+    `${link}`
+  );
+
+  alert(`${amount} HAD token/s burned successfully !`);
+
+  window.location.replace("latestTransactions.html");
+};
+
+//------------------------------ Swap Tokens -------------------------------//
+// Computes and displays the conversion values
+const updateEquivalent = () => {
+  let HADtoDAH = document.getElementById("HADtoDAH").value;
+
+  document.getElementById(
+    "HADtoDAHmsg"
+  ).innerHTML = `<b>HAD equivalent:</b> ${HADtoDAH * 10} DAH`;
+};
+
+// Swaping
+// Performs conversion between HAD and DAH according to the ratio we set
+// 1 HAD === 10 DAH
+const swap = async () => {
+  let value = document.getElementById("HADtoDAH").value;
+  let amount = myWeb3.utils.toWei(value);
+  let calcRatio = value * 10;
+
+  if (value <= 0) {
+    alert("Amount must be greater than 0");
+    return;
+  }
+
+  let trans = await swapContract.methods
+    .swap(amount, myWeb3.utils.toWei(calcRatio.toString()))
+    .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
+  console.log(trans);
+
+  const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
+
+  var date = new Date();
+  localStorage.setItem(
+    `${trans.transactionHash}-Swap-${date.toLocaleString()}`,
+    `${link}`
+  );
+
+  alert(`${value} HAD swapped to ${calcRatio} DAH !`);
+
+  window.location.replace("latestTransactions.html");
+};
+
+//---------------------------- Latest Transactions -----------------------------//
+// Retrieves information for the amount of transactions and the volume
 const getStat = async () => {
   let s = await contract.methods.getStat().call();
   let stat = {
@@ -125,18 +304,11 @@ const getStat = async () => {
   };
   document.getElementById(
     "stat"
-  ).innerHTML = `<b>Amount:</b> ${stat.Amount} transfer/s<br/><b>Volume:</b> ${stat.Volume} HAD`;
+  ).innerHTML = `<b>Amount:</b> ${stat.Amount} transaction/s<br/><b>Volume:</b> ${stat.Volume} HAD`;
   //console.log(stat);
 };
 
-const send = async (from, to, amount) => {
-  let am = myWeb3.utils.toWei(amount.toString(), "ether");
-  let trans = await contract.methods
-    .transfer(to, am)
-    .send({ from: from, gas: 500000, gasPrice: 1e6 });
-  console.log(trans.transactionHash);
-};
-
+//--------------- Checking connection / connection to Metamask ----------------//
 const connectMetamask = async () => {
   if (typeof web3 !== "undefined" && typeof window.ethereum !== "undefined") {
     try {
@@ -150,6 +322,7 @@ const connectMetamask = async () => {
 
       // contract
       contract = new myWeb3.eth.Contract(minABI, contractAddress);
+      swapContract = new myWeb3.eth.Contract(swapMinABI, swapContractAddress);
 
       // check balance
       if (document.URL.includes("index.html")) {
@@ -158,10 +331,18 @@ const connectMetamask = async () => {
         }, 2000);
       }
 
+      // Retrieves information for the amount of transactions and the volume
       if (document.URL.includes("latestTransactions.html")) {
         setInterval(() => {
           getStat();
         }, 2000);
+      }
+
+      // Performed every 2 seconds, and updates the calculations if any
+      if (document.URL.includes("swap.html")) {
+        setInterval(() => {
+          updateEquivalent();
+        }, 1000);
       }
     } catch (e) {
       document.getElementById("info").innerText = "error connection";
@@ -171,6 +352,15 @@ const connectMetamask = async () => {
     document.getElementById("info").innerText = "web3 is not found";
     //console.log("web3 is not found")
   }
+};
+
+//------------------------------ Global Functions -----------------------------//
+const send = async (from, to, amount) => {
+  let am = myWeb3.utils.toWei(amount.toString(), "ether");
+  let trans = await contract.methods
+    .transfer(to, am)
+    .send({ from: from, gas: 500000, gasPrice: 1e6 });
+  console.log(trans.transactionHash);
 };
 
 connectMetamask();
