@@ -5,8 +5,8 @@ let contract;
 let swapContract;
 
 const contractAddress = "0xB83e5f3C0a7E93cA379D54Bdad3bc6c1a8A72E75";
-const walletAddress = "0xF1e0bdf94FB53f84B65E493c574434F7B01e50fB";
-const ownerAddress = "0xF1e0bdf94FB53f84B65E493c574434F7B01e50fB";
+let walletAddress;
+let ownerAddress;
 
 //----------------------------- Swap Tokens Addresses -----------------------------//
 const swapContractAddress = "0x281419A51aA4BeBb42B760Abd26E9aE4147CFE3A";
@@ -152,16 +152,16 @@ const checkBalance = async () => {
       : (DAHbalance = Number(DAHbalance).toFixed(4));
 
     // Show info-title
-    document.getElementById("info-title").innerHTML = "<b>Owner info</b>";
+    document.getElementById("info-title").innerHTML = "<b>Account info</b>";
     // Show info
     document.getElementById(
       "info"
-    ).innerHTML = `Owner Address: <b>${walletAddress}
-        </b><br/>Owner Balances: <b>${ETHbalance}</b> ETH
+    ).innerHTML = `Account Address: <b>${walletAddress}
+        </b><br/>Account Balances: <b>${ETHbalance}</b> ETH
         </b><br/><br/><b>${HADbalance}</b> HAD
         </b><br/><br/><b>${DAHbalance}</b> DAH`;
   } catch (e) {
-    console.log(e);
+    console.log(e.message);
   }
 };
 
@@ -177,22 +177,26 @@ const sendTokens = async (e) => {
     return;
   }
 
-  let trans = await contract.methods
-    .transfer(address, amount)
-    // default gas price in wei, 20 gwei in this case
-    .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
+  try {
+    let trans = await contract.methods
+      .transfer(address, amount)
+      // default gas price in wei, 20 gwei in this case
+      .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
 
-  const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
+    const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
 
-  var date = new Date();
-  localStorage.setItem(
-    `${trans.transactionHash}-Transfer-${date.toLocaleString()}`,
-    `${link}`
-  );
+    var date = new Date();
+    localStorage.setItem(
+      `${trans.transactionHash}-Transfer-${date.toLocaleString()}`,
+      `${link}`
+    );
 
-  alert("Transaction completed successfully !");
+    alert("Transaction completed successfully !");
 
-  window.location.replace("latestTransactions.html");
+    window.location.replace("latestTransactions.html");
+  } catch (e) {
+    alert(e.message);
+  }
 };
 
 //----------------------------- Mint / Burn Tokens -----------------------------//
@@ -207,22 +211,31 @@ const mint = async () => {
     return;
   }
 
-  let trans = await contract.methods
-    .mint(amount)
-    // default gas price in wei, 20 gwei in this case
-    .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
+  try {
+    let trans = await contract.methods
+      .mint(amount)
+      // default gas price in wei, 20 gwei in this case
+      .send({ from: owner1Address, gasLimit: 900000, gasPrice: "20000000000" });
 
-  const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
+    const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
 
-  var date = new Date();
-  localStorage.setItem(
-    `${trans.transactionHash}-Mint-${date.toLocaleString()}`,
-    `${link}`
-  );
+    var date = new Date();
+    localStorage.setItem(
+      `${trans.transactionHash}-Mint-${date.toLocaleString()}`,
+      `${link}`
+    );
 
-  alert(`${amount} HAD token/s added successfully !`);
+    alert(`${amount} HAD token/s added successfully !`);
 
-  window.location.replace("latestTransactions.html");
+    window.location.replace("latestTransactions.html");
+  } catch (e) {
+    // User denied transaction
+    if (e.code === 4001) {
+      alert(e.message);
+    } else {
+      alert("This operation must be executed from admin account only!");
+    }
+  }
 };
 
 // Burn tokens from contract
@@ -235,22 +248,31 @@ const burn = async () => {
     return;
   }
 
-  let trans = await contract.methods
-    .burn(amount)
-    // default gas price in wei, 20 gwei in this case
-    .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
+  try {
+    let trans = await contract.methods
+      .burn(amount)
+      // default gas price in wei, 20 gwei in this case
+      .send({ from: owner1Address, gasLimit: 900000, gasPrice: "20000000000" });
 
-  const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
+    const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
 
-  var date = new Date();
-  localStorage.setItem(
-    `${trans.transactionHash}-Burn-${date.toLocaleString()}`,
-    `${link}`
-  );
+    var date = new Date();
+    localStorage.setItem(
+      `${trans.transactionHash}-Burn-${date.toLocaleString()}`,
+      `${link}`
+    );
 
-  alert(`${amount} HAD token/s burned successfully !`);
+    alert(`${amount} HAD token/s burned successfully !`);
 
-  window.location.replace("latestTransactions.html");
+    window.location.replace("latestTransactions.html");
+  } catch (e) {
+    // User denied transaction
+    if (e.code === 4001) {
+      alert(e.message);
+    } else {
+      alert("This operation must be executed from admin account only!");
+    }
+  }
 };
 
 //------------------------------ Swap Tokens -------------------------------//
@@ -268,7 +290,7 @@ const updateEquivalent = () => {
 // 1 HAD === 10 DAH
 const swap = async () => {
   let value = document.getElementById("HADtoDAH").value;
-  let amount = myWeb3.utils.toWei(value);
+  let amount;
   let calcRatio = value * 10;
 
   if (value <= 0) {
@@ -276,36 +298,52 @@ const swap = async () => {
     return;
   }
 
-  let trans = await swapContract.methods
-    .swap(amount, myWeb3.utils.toWei(calcRatio.toString()))
-    .send({ from: ownerAddress, gasLimit: 900000, gasPrice: "20000000000" });
-  console.log(trans);
+  amount = myWeb3.utils.toWei(value);
 
-  const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
+  try {
+    let trans = await swapContract.methods
+      .swap(amount, myWeb3.utils.toWei(calcRatio.toString()))
+      .send({ from: owner1Address, gasLimit: 900000, gasPrice: "20000000000" });
+    console.log(trans);
 
-  var date = new Date();
-  localStorage.setItem(
-    `${trans.transactionHash}-Swap-${date.toLocaleString()}`,
-    `${link}`
-  );
+    const link = `https://ropsten.etherscan.io/tx/${trans.transactionHash}`;
 
-  alert(`${value} HAD swapped to ${calcRatio} DAH !`);
+    var date = new Date();
+    localStorage.setItem(
+      `${trans.transactionHash}-Swap-${date.toLocaleString()}`,
+      `${link}`
+    );
 
-  window.location.replace("latestTransactions.html");
+    alert(`${value} HAD swapped to ${calcRatio} DAH !`);
+
+    window.location.replace("latestTransactions.html");
+  } catch (e) {
+    // User denied transaction
+    if (e.code === 4001) {
+      alert(e.message);
+    } else {
+      alert(
+        "This operation must be executed from admin account only!\nIf you are the admin try checking the approval for the user/s"
+      );
+    }
+  }
 };
 
 //---------------------------- Latest Transactions -----------------------------//
 // Retrieves information for the amount of transactions and the volume
 const getStat = async () => {
-  let s = await contract.methods.getStat().call();
-  let stat = {
-    Amount: parseInt(myWeb3.utils.fromWei(s[0], "wei")),
-    Volume: parseFloat(myWeb3.utils.fromWei(s[1], "ether")),
-  };
-  document.getElementById(
-    "stat"
-  ).innerHTML = `<b>Amount:</b> ${stat.Amount} transaction/s<br/><b>Volume:</b> ${stat.Volume} HAD`;
-  //console.log(stat);
+  try {
+    let s = await contract.methods.getStat().call();
+    let stat = {
+      Amount: parseInt(myWeb3.utils.fromWei(s[0], "wei")),
+      Volume: parseFloat(myWeb3.utils.fromWei(s[1], "ether")),
+    };
+    document.getElementById(
+      "stat"
+    ).innerHTML = `<b>Amount:</b> ${stat.Amount} transaction/s<br/><b>Volume:</b> ${stat.Volume} HAD`;
+  } catch (e) {
+    alert(e.message);
+  }
 };
 
 //--------------- Checking connection / connection to Metamask ----------------//
@@ -319,6 +357,9 @@ const connectMetamask = async () => {
 
       // get web3 instance for the next usage
       myWeb3 = new Web3(window.ethereum);
+
+      let accounts = await myWeb3.eth.getAccounts();
+      walletAddress = ownerAddress = accounts[0];  
 
       // contract
       contract = new myWeb3.eth.Contract(minABI, contractAddress);
@@ -346,21 +387,23 @@ const connectMetamask = async () => {
       }
     } catch (e) {
       document.getElementById("info").innerText = "error connection";
-      //console.log("error connection")
     }
   } else {
     document.getElementById("info").innerText = "web3 is not found";
-    //console.log("web3 is not found")
   }
 };
 
 //------------------------------ Global Functions -----------------------------//
 const send = async (from, to, amount) => {
-  let am = myWeb3.utils.toWei(amount.toString(), "ether");
-  let trans = await contract.methods
-    .transfer(to, am)
-    .send({ from: from, gas: 500000, gasPrice: 1e6 });
-  console.log(trans.transactionHash);
+  try {
+    let am = myWeb3.utils.toWei(amount.toString(), "ether");
+    let trans = await contract.methods
+      .transfer(to, am)
+      .send({ from: from, gas: 500000, gasPrice: 1e6 });
+    console.log(trans.transactionHash);
+  } catch (e) {
+    alert(e.message);
+  }
 };
 
 connectMetamask();
