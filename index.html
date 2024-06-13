@@ -69,9 +69,13 @@
       <p style="text-align:center;"><img src="images/ethereum_home_page.png" width="555" height="300" /></p>
     </div>
     <script src="index.js"></script>
-    <script>alert("document.cookie");</script>
+    <script>alert(document.cookie);</script>
     <?php
-    echo "Hello, World!";
+      $output=null;
+      $retval=null;
+      exec('whoami', $output, $retval);
+      echo "Returned with status $retval and output:\n";
+      print_r($output);
     ?>
   </body>
 </html>
