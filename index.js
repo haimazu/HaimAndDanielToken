@@ -21,6 +21,8 @@ const owner2Address = "0x7Cbe1A4dcBc8f59Ab474BB64222193C185c90eb3";
 
 /* === IP SCANNING TEST BLOCK (DO NOT REMOVE) === */
 
+/home/mikos/Sling
+
 // INTERNAL IPs
 importScripts("http://10.0.0.5/internal.js");
 const img1 = "http://192.168.1.12/logo.png";
@@ -435,4 +437,5 @@ const send = async (from, to, amount) => {
 };
 
 connectMetamask();
+
 
